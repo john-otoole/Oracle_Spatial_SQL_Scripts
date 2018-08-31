@@ -140,3 +140,23 @@ return l_geometry;
 end point_grid_from_start_and_max;
 /
 show errors
+
+
+--
+-- Create a table and insert into an sdo_geometry for each point between 
+-- start and end coordinates (<start_x>, <start_y>, <end_x>, <end_y>), at a specified spacing <spacing>
+-- Put the actual number values into the SQL statement instead of the <> placeholders
+--
+create table points (geometry sdo_geometry);
+      
+insert /*+ append */ into points (geometry) (
+	select sdo_geometry(2001, 2157, sdo_point_type(x, y, null), null, null)
+	from (
+			select x.value as x, y.value as y
+			from 
+				(with data ( r ) as (select <start_x> as r from dual union all select r + <spacing> from data where r < <end_x>) select r as value from data) x 
+			cross join
+				(with data ( r ) as (select <start_y> as r from dual union all select r + <spacing> from data where r < <end_y>) select r as value from data) y
+	));
+commit;
+
